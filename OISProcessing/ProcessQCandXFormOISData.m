@@ -3,17 +3,17 @@ database='G:\OISProjects\CulverLab\Stroke\OptoStroke.xlsx';
 excelfiles=[2];  % Rows from Excell Database
 
 for n=excelfiles;
-    
+
     [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
     Date=num2str(raw{1});
     Mouse=raw{2};
     rawdataloc=raw{3};
     saveloc=raw{4};
     system=raw{5};
-    sessiontype=eval(raw{6});    
+    sessiontype=eval(raw{6});
     directory=[saveloc, Date, '\'];
-    
-    GetLandMarksandMask(Date, Mouse, directory, rawdataloc);    
+
+    GetLandMarksandMask(Date, Mouse, directory, rawdataloc);
 end
 
 num=matlabpool('size');
@@ -22,20 +22,20 @@ if ~num
 end
 
 for n=excelfiles;
-    
+
     [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
     Date=num2str(raw{1});
     Mouse=raw{2};
     rawdataloc=raw{3};
     saveloc=raw{4};
     system=raw{5};
-    sessiontype=eval(raw{6});    
+    sessiontype=eval(raw{6});
     directory=[saveloc, Date, '\'];
-    
+
     if ~exist(directory);
         mkdir(directory);
     end
-      
+
     for t=1:numel(sessiontype);
         if ~exist('info', 'var')
             if strcmp(sessiontype{t},'fc')
@@ -54,7 +54,7 @@ for n=excelfiles;
             end
         end
         ProcMultiOISFiles(Date, Mouse, sessiontype{t}, directory, rawdataloc, info, system);
-        OISQC(Date, Mouse, sessiontype{t}, directory, rawdataloc, info, system);        
+        OISQC(Date, Mouse, sessiontype{t}, directory, rawdataloc, info, system);
         cd(directory)
         TransformDatahb(Date, Mouse, sessiontype{t});
         clear info
