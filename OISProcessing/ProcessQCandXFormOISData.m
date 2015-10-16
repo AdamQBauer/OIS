@@ -26,10 +26,12 @@ for n=excelfiles;
     [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
     Date=num2str(raw{1});
     Mouse=raw{2};
-    rawdataloc=raw{3};
+    rawdatadir=raw{3};
     saveloc=raw{4};
     system=raw{5};
     sessiontype=eval(raw{6});
+
+    rawdataloc=[rawdatadir, Date, '\']
     directory=[saveloc, Date, '\'];
 
     if ~exist(directory);

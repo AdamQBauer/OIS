@@ -6,11 +6,11 @@ filename = [Date,'-',Mouse,'-',suffix];
 run=1;
 while 1
 
-    loopfile=[rawdataloc, Date,'\', filename,num2str(run),'.tif'];
+    loopfile=[rawdataloc, filename,num2str(run),'.tif'];
 
     if ~exist(loopfile,'file');
         run=run+1;
-        loopfile=[rawdataloc, Date,'\', filename,num2str(run),'.tif'];
+        loopfile=[rawdataloc, filename,num2str(run),'.tif'];
 
         if ~exist(loopfile,'file');
             break
