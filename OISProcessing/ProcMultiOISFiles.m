@@ -44,24 +44,24 @@ filename = [Date,'-',Mouse,'-',suffix];
 
 n=1; %code assumes the first run is labeled as "1"
 while 1 %this loop will execute as long as a run is found
-    
-    loopfile=[rawdataloc,Date,'\',filename,num2str(n),rawdatatype];
-    
+
+    loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
     if ~exist(loopfile,'file'); % increments run number
         n=n+1;
-        loopfile=[rawdataloc, Date,'\', filename,num2str(n),rawdatatype];
-        
+        loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
         if ~exist(loopfile,'file'); % if 2 runs were skipped
             n=n+1;
-            loopfile=[rawdataloc, Date,'\',filename,num2str(n),rawdatatype];
-            
+            loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
             if ~exist(loopfile,'file'); %stops executing loop if more than one fc run was skipped.
                 disp([' **** No more data found for ', filename, ' ****'])
                 break
             end
         end
     end
-    
+
     if exist([directory, filename, num2str(n),'-datahb.mat'],'file') %checks to see if the raw data were already processed
         disp([filename,num2str(n),' Already processed'])
         n=n+1;
