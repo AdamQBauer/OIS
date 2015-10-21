@@ -25,7 +25,7 @@ function R=strace2R(strace,datahb, nVx, nVy)
 % POSSIBILITY OF SUCH DAMAGE.
 
 datahb=reshape(datahb,nVx*nVy,[]);
-R=normr(datahb)*normr(strace)';
-R=reshape(R,nVy,nVx,[]); 
+R=normRow(datahb)*normRow(strace)';
+R=reshape(R,nVy,nVx,[]);
 
 end

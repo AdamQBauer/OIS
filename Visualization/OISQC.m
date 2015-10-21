@@ -261,7 +261,7 @@ while 1
             P=burnseeds(seedcenter,seedradpix,isbrain);
             strace=P2strace(P,Oxy, seedcenter); %% strace is each seeds trace resultinmg from averaging the pixels within a seed region
             R=strace2R(strace,Oxy, info.nVx, info.nVy); %% normalize  rows in time, dot product of those rows with strce
-            Rs=normr(strace)*normr(strace)';
+            Rs=normRow(strace)*normRow(strace)';
 
             for s=1:numseeds
 
