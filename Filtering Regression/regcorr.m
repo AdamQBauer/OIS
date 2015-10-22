@@ -61,8 +61,8 @@ function [data2, R]=regcorr(data,hem)
 % ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
 
-[data Sin Sout]=datacondition(data,2); % reshape to meas x color x time
-[hem Hin Hout]=datacondition(hem,2); % reshape to color x time
+[data, Sin, Sout]=datacondition(data,2); % reshape to meas x color x time
+[hem, Hin, Hout]=datacondition(hem,2); % reshape to color x time
 
 % check compatibility
 if Hout(end)~=Sout(end)
@@ -104,7 +104,7 @@ elseif numel(Sout)==2 % special case of one data trace
         
         data2(c,:)=temp-g*beta;
         
-        R(c)=normr(g')*normc(temp);
+        R(c)=normRow(g')*normCol(temp);
     end
     
 end
