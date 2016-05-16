@@ -1,28 +1,8 @@
 database='G:\OISProjects\CulverLab\Stroke\OptoStroke.xlsx';
-
-excelfiles=[2];  % Rows from Excell Database
-
-for n=excelfiles;
-
-    [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
-    Date=num2str(raw{1});
-    Mouse=raw{2};
-    rawdataloc=raw{3};
-    saveloc=raw{4};
-    system=raw{5};
-    sessiontype=eval(raw{6});
-    directory=[saveloc, Date, '\'];
-
-    GetLandMarksandMask(Date, Mouse, directory, rawdataloc);
-end
-
-num=matlabpool('size');
-if ~num
-    matlabpool 8
-end
+excelfiles=[154];  % Rows from Excell Database
 
 for n=excelfiles;
-
+    
     [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
     Date=num2str(raw{1});
     Mouse=raw{2};
@@ -30,14 +10,34 @@ for n=excelfiles;
     saveloc=raw{4};
     system=raw{5};
     sessiontype=eval(raw{6});
-
-    rawdataloc=[rawdatadir, Date, '\']
+    rawdataloc=[rawdatadir, Date, '\'];
     directory=[saveloc, Date, '\'];
+    
+    GetLandMarksandMask(Date, Mouse, directory, rawdataloc, system);
+end
 
+poolobj = gcp('nocreate'); % If no pool, do not create new one.
+if isempty(poolobj)
+    parpool('local',8)
+end
+
+for n=excelfiles;
+    
+    [~, ~, raw]=xlsread(database,1, ['A',num2str(n),':F',num2str(n)]);
+    Date=num2str(raw{1});
+    Mouse=raw{2};
+    rawdatadir=raw{3};
+    saveloc=raw{4};
+    system=raw{5};
+    sessiontype=eval(raw{6});
+    
+    rawdataloc=[rawdatadir, Date, '\'];
+    directory=[saveloc, Date, '\'];
+    
     if ~exist(directory);
         mkdir(directory);
     end
-
+    
     for t=1:numel(sessiontype);
         if ~exist('info', 'var')
             if strcmp(sessiontype{t},'fc')
