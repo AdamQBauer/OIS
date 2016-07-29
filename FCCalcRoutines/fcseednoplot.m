@@ -1,4 +1,6 @@
-function [R, R_LR, R_AP]=fcseednoplot(datahb, isbrain, seeds, meth)
+function [R, R_LR, R_AP]=fcseednoplot(datahb, isbrain, seeds, meth, isbrain2)
+
+if ~exist('isbrain2'); isbrain2=''; end
 
 [nVy,nVx]=size(isbrain);
 mm=10;                          % field of view
@@ -11,7 +13,7 @@ datahb(isnan(datahb))=0;
 isbrain(isnan(isbrain))=0;
 
 if ndims(datahb)>3
-    [datahb3]=gsr_stroke2(datahb,isbrain, meth);
+    [datahb3]=gsr_stroke2(datahb,isbrain, meth, isbrain2);
 else
     datahb3=datahb;
 end

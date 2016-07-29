@@ -1,8 +1,8 @@
-database='G:\OISProjects\CulverLab\Stroke\OptoStroke.xlsx';
-outname='cat';
-regtype={'Whole', 'Both'};
+database='G:\OISProjects\Holtzman Lab\OISSpeckleDataBase.xlsx';
+excelfiles=[20:31];  % Rows from Excell Database
 
-excelfiles=[2:94];  % Rows from Excell Database
+outname='cat';
+regtype={'Whole'};
 
 for n=excelfiles;
     
@@ -71,4 +71,4 @@ for n=excelfiles;
     end    
 end
 
-
+clear
