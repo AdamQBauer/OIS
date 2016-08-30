@@ -57,7 +57,7 @@ isbrain(isnan(isbrain))=0;
 
 %% Signal Regression
 if ndims(datahb)>3
-    [datahb3]=gsr_stroke2(datahb,isbrain, meth, isbrain2);
+    [datahb3]=gsr_multi(datahb,isbrain, meth, isbrain2);
 else
     datahb3=datahb;
 end
