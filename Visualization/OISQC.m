@@ -1,6 +1,5 @@
 function OISQC(Date, Mouse, suffix, directory, rawdataloc, info, system)
 
-rawdatatype='.tif';
 filename = [Date,'-',Mouse,'-',suffix];
 
 run=1;
@@ -39,11 +38,11 @@ while 1
         if R~=0
             rawdata=rawdata(:,:,1:(L-R));
             disp(['** ',num2str(info.numled-R),' frames were dropped **'])
-            info.framesdropped=info.numled-R;            
+            info.framesdropped=info.numled-R;
         end
         
         rawdata=reshape(rawdata,info.nVy,info.nVx,info.numled,[]);
-        rawdata=rawdata(:,:,:,2:end); % cut off bad first set of frames
+        rawdata=rawdata(:,:,:,2:end); % cut off bad first set of framesraw
         info.T1=size(rawdata,4);
         
         testpixel=squeeze(rawdata(31,82,:,:));
@@ -167,7 +166,18 @@ while 1
         %% Check Evoked Responses
         
         if strcmp(suffix, 'stim')
+            
+            R=mod(size(Oxy,3),info.stimblocksize);
+            if R~=0
+                pad=info.stimblocksize-R;
+                disp(['** Non integer number of blocks presented. Padded ' filename, num2str(run), ' with ', num2str(pad), ' zeros **'])                            
+                Oxy(:,:,end:end+pad)=0;
+                DeOxy(:,:,end:end+pad)=0;   
+                info.appendedzeros=pad;
+            end
+            
             Oxy=reshape(Oxy,info.nVy,info.nVx,info.stimblocksize,[]);
+
             for b=1:size(Oxy,4)
                 MeanFrame=squeeze(mean(Oxy(:,:,1:info.stimbaseline,b),3));
                 for t=1:size(Oxy, 3);
@@ -261,6 +271,7 @@ while 1
             
         elseif strcmp(suffix, 'fc')
             
+            Oxy=reshape(Oxy,info.nVy*info.nVx,[]);
             seednames={'Olf','Fr','Cg','M','SS','RS','V'};
             seedcenter=seedcenter(1:14,:);
             sides={'L','R'};
@@ -293,7 +304,7 @@ while 1
                 hold on;
                 plot(seedcenter(2*(s-1)+1,1),seedcenter(2*(s-1)+1,2),'ko');
                 axis image off
-                title([seednames{s},'R'])
+                title([seednames{s},'L'])
                 
                 subplot('position', [OE+0.10 (0.47-((round(s/2)-1)*0.15)) 0.1 0.1]);
                 Im2=overlaymouse(R(:,:,(2*(s-1)+2)),WL, isbrain,'jet',-1,1);
@@ -301,7 +312,7 @@ while 1
                 hold on;
                 plot(seedcenter(2*(s-1)+2,1),seedcenter(2*(s-1)+2,2),'ko');
                 axis image off
-                title([seednames{s},'L'])
+                title([seednames{s},'R'])
                 hold off;
             end
             save([directory, filename,num2str(run),'-datahb'],'R', 'Rs', '-append');
