@@ -8,10 +8,13 @@ while 1
     loopfile=[rawdataloc, filename,num2str(run),'.tif'];
     
     if ~exist(loopfile,'file');
+        disp(['The file: ', loopfile, ', does not exist'])
+        
         run=run+1;
         loopfile=[rawdataloc, filename,num2str(run),'.tif'];
         
         if ~exist(loopfile,'file');
+            disp(['The file: ', loopfile, ', does not exist. Moving on.'])
             break
         end
     end
@@ -126,7 +129,14 @@ while 1
         
         %% Movement Check
         rawdata=reshape(rawdata, info.nVy, info.nVx,info.numled, []);
-        Im1=single(squeeze(rawdata(:,:,4,1)));
+                
+        if strcmp(system, 'fcOIS1')
+            BlueChan=4;
+        elseif strcmp(system, 'fcOIS2')
+            BlueChan=1;
+        end
+                
+        Im1=single(squeeze(rawdata(:,:,BlueChan,1)));
         F1 = fft2(Im1); % reference image
         
         InstMvMt=zeros(size(rawdata,4),1);
@@ -134,12 +144,12 @@ while 1
         Shift=zeros(2,size(rawdata,4),1);
         
         for t=1:size(rawdata,4)-1;
-            LTMvMt(t)=sum(sum(abs(squeeze(rawdata(:,:,4,t+1))-Im1)));
-            InstMvMt(t)=sum(sum(abs(squeeze(rawdata(:,:,4,t+1))-squeeze(rawdata(:,:,4,t)))));
+            LTMvMt(t)=sum(sum(abs(squeeze(rawdata(:,:,BlueChan,t+1))-Im1)));
+            InstMvMt(t)=sum(sum(abs(squeeze(rawdata(:,:,BlueChan,t+1))-squeeze(rawdata(:,:,BlueChan,t)))));
         end
         
         for t=1:size(rawdata,4);
-            Im2=single(squeeze(rawdata(:,:,4,t)));
+            Im2=single(squeeze(rawdata(:,:,BlueChan,t)));
             F2 = fft2(Im2); % subsequent image to translate
             
             pdm = exp(1i.*(angle(F1)-angle(F2))); % Create phase difference matrix
@@ -170,14 +180,14 @@ while 1
             R=mod(size(Oxy,3),info.stimblocksize);
             if R~=0
                 pad=info.stimblocksize-R;
-                disp(['** Non integer number of blocks presented. Padded ' filename, num2str(run), ' with ', num2str(pad), ' zeros **'])                            
+                disp(['** Non integer number of blocks presented. Padded ' filename, num2str(run), ' with ', num2str(pad), ' zeros **'])
                 Oxy(:,:,end:end+pad)=0;
-                DeOxy(:,:,end:end+pad)=0;   
+                DeOxy(:,:,end:end+pad)=0;
                 info.appendedzeros=pad;
             end
             
             Oxy=reshape(Oxy,info.nVy,info.nVx,info.stimblocksize,[]);
-
+            
             for b=1:size(Oxy,4)
                 MeanFrame=squeeze(mean(Oxy(:,:,1:info.stimbaseline,b),3));
                 for t=1:size(Oxy, 3);
