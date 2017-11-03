@@ -46,6 +46,7 @@ while 1
         
         rawdata=reshape(rawdata,info.nVy,info.nVx,info.numled,[]);
         rawdata=rawdata(:,:,:,2:end); % cut off bad first set of framesraw
+        
         info.T1=size(rawdata,4);
         
         testpixel=squeeze(rawdata(31,82,:,:));
@@ -88,7 +89,12 @@ while 1
         elseif strcmp(system, 'fcOIS2')
             Colors=[0 0 1; 0 1 0; 1 1 0; 1 0 0];
             TickLabels={'B', 'G', 'Y', 'R'};
+            
+        elseif strcmp(system, 'EastOIS1')
+            Colors=[0 0 1; 1 1 0; 1 0.5 0; 1 0 0];
+            TickLabels={'B', 'Y', 'O', 'R'};            
         end
+        
         subplot('position', [0.12 0.71 0.17 0.2])
         p=plot(time,mdata'); title('Raw Data');
         for c=1:info.numled;
@@ -98,6 +104,7 @@ while 1
         xlabel('Time (sec)')
         ylabel('Counts');
         ylim([2000 10000])
+        xlim([time(1) time(end)])
         
         subplot('position', [0.35 0.71 0.17 0.2])
         p=plot(time,mdatanorm'); title('Normalized Raw Data');
@@ -107,6 +114,7 @@ while 1
         xlabel('Time (sec)')
         ylabel('Mean Counts')
         ylim([0.95 1.05])
+        xlim([time(1) time(end)])
         
         subplot('position', [0.6 0.71 0.1 0.2])
         plot(stddatanorm*100');
@@ -132,7 +140,7 @@ while 1
                 
         if strcmp(system, 'fcOIS1')
             BlueChan=4;
-        elseif strcmp(system, 'fcOIS2')
+        elseif strcmp(system, 'fcOIS2')||strcmp(system, 'EastOIS1')
             BlueChan=1;
         end
                 
@@ -314,7 +322,7 @@ while 1
                 hold on;
                 plot(seedcenter(2*(s-1)+1,1),seedcenter(2*(s-1)+1,2),'ko');
                 axis image off
-                title([seednames{s},'L'])
+                title([seednames{s},'R'])
                 
                 subplot('position', [OE+0.10 (0.47-((round(s/2)-1)*0.15)) 0.1 0.1]);
                 Im2=overlaymouse(R(:,:,(2*(s-1)+2)),WL, isbrain,'jet',-1,1);
@@ -322,7 +330,7 @@ while 1
                 hold on;
                 plot(seedcenter(2*(s-1)+2,1),seedcenter(2*(s-1)+2,2),'ko');
                 axis image off
-                title([seednames{s},'R'])
+                title([seednames{s},'L'])
                 hold off;
             end
             save([directory, filename,num2str(run),'-datahb'],'R', 'Rs', '-append');
@@ -330,13 +338,16 @@ while 1
         
         subplot('position', [0.55 0.4 0.35 0.2]);
         [AX, H1, H2]=plotyy(time, InstMvMt/1e6,time, LTMvMt/1e6);
-        set(AX(1),'ylim',[0 5]);
-        set(AX(1), 'ytick',[0,1,2,3,4,5])
-        set(AX(2),'ylim',[0 5]);
-        set(AX(2), 'ytick',[0,1,2,3,4,5])
+        maxval=3;
+        set(AX(1),'ylim',[0 maxval]);
+        set(AX(1),'ytick',[0,0.2,0.4,0.6,0.8,1]*maxval)
+        set(AX(2),'ylim',[0 maxval]);
+        set(AX(2), 'ytick',[0,0.2,0.4,0.6,0.8,1]*maxval)
         set(get(AX(1), 'YLabel'), 'String', {'Sum Abs Diff Frame to Frame,'; '(Counts x 10^6)'});
         set(get(AX(2),'YLabel'), 'String', {'Sum Abs Diff WRT First Frame,'; '(Counts x 10^6)'});
         xlabel('Time  (sec)');
+        xlim(AX(1), [time(1) time(end)])
+        xlim(AX(2), [time(1) time(end)])
         legend('Instantaneous Change','Change over Run');
         
         subplot('position', [0.55 0.08 0.35 0.2]);
@@ -345,6 +356,7 @@ while 1
         plot(time, Shift(2,:),'b');
         ylim([-1*(max(Shift(:))+1) max(Shift(:)+1)]);
         xlabel('Time  (sec)');
+        xlim([time(1) time(end)])
         ylabel('Offset (pixels)');
         legend('Vertical','Horizontal');
         
