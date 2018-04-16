@@ -88,8 +88,7 @@ while 1
             TickLabels={'R', 'O', 'Y', 'B'};
         elseif strcmp(system, 'fcOIS2')
             Colors=[0 0 1; 0 1 0; 1 1 0; 1 0 0];
-            TickLabels={'B', 'G', 'Y', 'R'};
-            
+            TickLabels={'B', 'G', 'Y', 'R'};            
         elseif strcmp(system, 'EastOIS1')
             Colors=[0 0 1; 1 1 0; 1 0.5 0; 1 0 0];
             TickLabels={'B', 'Y', 'O', 'R'};            
@@ -103,7 +102,7 @@ while 1
         title('Raw Data');
         xlabel('Time (sec)')
         ylabel('Counts');
-        ylim([2000 10000])
+        ylim([500 14000])
         xlim([time(1) time(end)])
         
         subplot('position', [0.35 0.71 0.17 0.2])
@@ -234,7 +233,8 @@ while 1
             
             for b=1:size(Oxy,4);
                 subplot('position', [0.03+(b-1)*0.095 0.5 0.095 0.095]);
-                imagesc(Oxy(:,:,info.stimbaseline+info.stimduration,b), [-1e-3 1e-3]);
+                temp=Oxy(:,:,info.stimbaseline+info.stimduration,b);
+                imagesc(temp, [-max(max(temp)) max(max(temp))]);
                 axis image;
                 set(gca, 'XTick', []);
                 set(gca, 'YTick', []);
@@ -246,7 +246,8 @@ while 1
             
             for b=1:size(DeOxy,4);
                 subplot('position', [0.03+(b-1)*0.095 0.35 0.095 0.095]);
-                imagesc(DeOxy(:,:,info.stimbaseline+info.stimduration,b), [-1e-3 1e-3]);
+                temp=DeOxy(:,:,info.stimbaseline+info.stimduration,b);
+                imagesc(temp, [min(min(temp)) -1*min(min(temp))]);                
                 axis image;
                 set(gca, 'XTick', []);
                 set(gca, 'YTick', []);
@@ -256,9 +257,10 @@ while 1
                 title(['Pres ', num2str(b)]);
             end
             
-            for b=1:size(DeOxy,4);
+            for b=1:size(Oxy,4);
                 subplot('position', [0.03+(b-1)*0.095 0.2 0.095 0.095]);
-                imagesc(Oxy(:,:,info.stimbaseline+info.stimduration,b)+DeOxy(:,:,info.stimbaseline+info.stimduration,b), [-1e-3 1e-3]);
+                temp=Oxy(:,:,info.stimbaseline+info.stimduration,b)+DeOxy(:,:,info.stimbaseline+info.stimduration,b);
+                imagesc(temp, [-max(max(temp)) max(max(temp))]);                
                 axis image;
                 set(gca, 'XTick', []);
                 set(gca, 'YTick', []);
@@ -269,17 +271,20 @@ while 1
             end
             
             subplot('position', [0.05 0.05 0.095 0.095]);
-            imagesc(mean(AvgOxy(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3), [-1e-3 1e-3]);
+            temp=mean(AvgOxy(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3);
+            imagesc(temp, [-max(max(temp)) max(max(temp))]);                
             axis image off
             title('Avg Oxy')
             
             subplot('position', [0.20 0.05 0.095 0.095]);
-            imagesc(mean(AvgDeOxy(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3), [-1e-3 1e-3]);
+            temp=mean(AvgDeOxy(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3);
+            imagesc(temp, [min(min(temp)) -1*min(min(temp))]);    
             axis image off
             title('Avg DeOxy')
             
             subplot('position', [0.35 0.05 0.095 0.095]);
-            imagesc(mean(AvgTotal(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3), [-1e-3 1e-3]);
+            temp=mean(AvgTotal(:,:,info.stimbaseline+info.stimduration-2:info.stimbaseline+info.stimduration),3);
+            imagesc(temp, [-max(max(temp)) max(max(temp))]);
             axis image off
             title('Avg Total')
             
