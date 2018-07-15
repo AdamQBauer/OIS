@@ -1,8 +1,15 @@
-function [Oxy_gsr, DeOxy_gsr, gs]=gsr(datahb,isbrain)
+function [Oxy_gsr, DeOxy_gsr, gs, beta]=gsr(datahb,isbrain)
 
-% Performs global signal regression from every pixel.  
-% datahb are the oxy and deoxy hemoglobin data in each pixel over time,
-% isbrain is a binary mask for all pixels labeld as brain.
+% Performs global signal regression from every pixel.
+% Inputs:
+%   datahb are the oxy and deoxy hemoglobin data in each pixel over time,
+%   isbrain is a binary mask for all pixels labeld as brain.
+% Outputs:
+%   Oxy_gsr = gsr HbO signal
+%   DeOxy_gsr = gsr HbR signal
+%   gs = global signal
+%   beta = regression coefficient, describing how much gs was in the signal
+%   before being regressed out
 
 % (c) 2009 Washington University in St. Louis
 % All Right Reserved
@@ -32,8 +39,13 @@ function [Oxy_gsr, DeOxy_gsr, gs]=gsr(datahb,isbrain)
 
 datahb=reshape(datahb,nVx*nVy,hb,T);
 gs=squeeze(mean(datahb(isbrain==1,:,:),1));
-[datahb2, Rgs]=regcorr(datahb,gs);
-Oxy_gsr=squeeze(datahb2(:,1,:));
-DeOxy_gsr=squeeze(datahb2(:,2,:));
+[datahb2, Rgs, beta]=regcorr(datahb,gs);
+if size(datahb2,2) > 1
+    Oxy_gsr=squeeze(datahb2(:,1,:));
+    DeOxy_gsr=squeeze(datahb2(:,2,:));
+else
+    Oxy_gsr = squeeze(datahb2(:,1,:));
+    DeOxy_gsr = [];
+end
 
 end

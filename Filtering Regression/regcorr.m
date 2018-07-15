@@ -1,4 +1,4 @@
-function [data2, R]=regcorr(data,hem)
+function [data2, R, betaOut]=regcorr(data,hem)
 
 % regcorr() regresses out a signal from data and returns the
 % post-regression data as well as the correlation coefficient of the input
@@ -10,7 +10,7 @@ function [data2, R]=regcorr(data,hem)
 % 
 % To use regcorr() The syntax is:
 % 
-% [data2 R]=regcorr(data,hem)
+% [data2 R beta]=regcorr(data,hem)
 % 
 % regcorr() takes two input variables data and hem. This first variable is
 % your data from which you want the signal regressed. It must be an array
@@ -35,7 +35,9 @@ function [data2, R]=regcorr(data,hem)
 % second output variable is the correlation coefficients with every
 % channel. It has the same size as the input data array (except without the
 % time dimension). The second output, R is the correlation coefficient
-% between hem and every time trace in data (within a color/contrast).  
+% between hem and every time trace in data (within a color/contrast). The
+% third output, beta, is the regression coefficient for each source
+% (detector, voxel, etc.). 
 %
 % (c) 2009 Washington University in St. Louis
 % All Right Reserved
@@ -69,6 +71,8 @@ if Hout(end)~=Sout(end)
     error('** Your data and regressor do not have the same time length: perhaps check your Resampling Tolerance Flag **')
 end
 
+betaOut = [];
+
 if numel(Sout)==3 % normal case
     L=Sout(1);
     C=Sout(2);
@@ -82,6 +86,7 @@ if numel(Sout)==3 % normal case
         g=hem(c,:)'; % regressor/noise signal in correct orientation time x 1
         gp=pinv(g); % pseudoinverse for least-square regression 1 x time
         beta=gp*temp; % regression coefficient 1 x voxel
+        betaOut = [betaOut; beta];
         data2(:,c,:)=temp-g*beta; % linear regression
         R(:,c)=normRow(g')*normCol(temp); % correlation coefficient
     end
@@ -101,7 +106,7 @@ elseif numel(Sout)==2 % special case of one data trace
         g=hem(c,:)';
         gp=pinv(g);
         beta=gp*temp;
-        
+        betaOut = [betaOut; beta];
         data2(c,:)=temp-g*beta;
         
         R(c)=normRow(g')*normCol(temp);
