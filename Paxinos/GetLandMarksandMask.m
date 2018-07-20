@@ -1,27 +1,30 @@
 function GetLandMarksandMask(Date, Mouse, directory, rawdataloc, system)
 
-if exist([directory, Date,'-', Mouse,'-LandmarksandMask.mat'])
+if exist(fullfile(directory, [Date,'-', Mouse,'-LandmarksandMask.mat']))
     disp(['Landmarks and mask file already exists for ', Date,'-', Mouse])
 else
     
-    if ~exist(directory);
+    if ~exist(directory)
         mkdir(directory);
     end
     
-    filename=[rawdataloc,Date,'-', Mouse,'-fc1.tif'];
-    if ~exist(filename);
-        filename=[rawdataloc,Date,'-', Mouse,'-stim1.tif'];
-        if ~exist(filename);
-            disp(['Data for ', rawdataloc,Date,'-', Mouse, ' not found'])
-        end
+    filename=fullfile(rawdataloc,[Date,'-', Mouse,'-fc1.tif']);
+    if ~exist(filename)
+        filename=fullfile(rawdataloc,[Date,'-', Mouse,'-stim1.tif']);
+    end
+    if ~exist(filename)
+        filename=fullfile(rawdataloc,[Date,'-', Mouse,'.tif']);
+    end
+    if ~exist(filename)
+        disp(['Data for ', rawdataloc,Date,'-', Mouse, ' not found'])
     end
     
     WL=zeros(128,128,3);
     i=0;
     
     if strcmp(system, 'fcOIS1')
-       for k = [5,7,8];    %make WL image (r, y, b channels)
-        %for k = [7,9,10];    %make WL image (r, y, b channels)            
+        for k = [5,7,8];    %make WL image (r, y, b channels)
+            %for k = [7,9,10];    %make WL image (r, y, b channels)
             i=i+1;
             WL(:,:,i) = fliplr(imread(filename,k));
         end
@@ -79,7 +82,8 @@ else
         end
     end
     
-    imwrite(WL,[directory,Date,'-',Mouse,'-WL.tif'],'tiff');
-    save([directory, Date,'-', Mouse,'-LandmarksandMask.mat'], 'WLcrop', 'xform_WLcrop', 'xform_isbrain', 'isbrain', 'WL', 'xform_WL', 'I', 'seedcenter');
+    imwrite(WL,fullfile(directory,[Date,'-',Mouse,'-WL.tif']),'tiff');
+    save(fullfile(directory,[Date,'-', Mouse,'-LandmarksandMask.mat']), 'WLcrop', 'xform_WLcrop', 'xform_isbrain', 'isbrain', 'WL', 'xform_WL', 'I', 'seedcenter');
     close all
+end
 end
