@@ -1,4 +1,4 @@
-function ProcMultiOISFiles(filename, directory, info, system)
+function ProcMultiOISFiles(Date, Mouse, suffix, directory, rawdataloc, info, system)
 
 % (c) 2009 Washington University in St. Louis
 % All Rights Reserved
@@ -39,13 +39,38 @@ function ProcMultiOISFiles(filename, directory, info, system)
 % POSSIBILITY OF SUCH DAMAGE.
 
 %% Process Resting State Data
-[PATHSTR,NAME,EXT] = fileparts(filename);
-if exist(fullfile(PATHSTR,[NAME,'-datahb.mat']),'file') %checks to see if the raw data were already processed
-else
-    [datahb, WL, op, E, info]=procOISData(filename, info, system);
-    disp('Saving Data')
-    save([directory, filename,num2str(n),'-datahb'],'datahb','WL', 'info')
-    imwrite(WL,[directory, filename,num2str(n),'-WL.tif'],'tiff');
-    n=n+1;
-end
+rawdatatype='.tif';
+filename = [Date,'-',Mouse,'-',suffix];
+
+n=1; %code assumes the first run is labeled as "1"
+while 1 %this loop will execute as long as a run is found
+
+    loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
+    if ~exist(loopfile,'file'); % increments run number
+        n=n+1;
+        loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
+        if ~exist(loopfile,'file'); % if 2 runs were skipped
+            n=n+1;
+            loopfile=[rawdataloc, filename,num2str(n),rawdatatype];
+
+            if ~exist(loopfile,'file'); %stops executing loop if more than one fc run was skipped.
+                disp([' **** No more data found for ', filename, ' ****'])
+                break
+            end
+        end
+    end
+
+    if exist([directory, filename, num2str(n),'-datahb.mat'],'file') %checks to see if the raw data were already processed
+        disp([filename,num2str(n),' Already processed'])
+        n=n+1;
+    else
+        disp(['Processing ', filename,num2str(n), ' on ', system])
+        [datahb, WL, op, E, info]=procOISData(loopfile, info, system);
+        disp('Saving Data')
+        save([directory, filename,num2str(n),'-datahb'],'datahb','WL', 'info')
+        imwrite(WL,[directory, filename,num2str(n),'-WL.tif'],'tiff');
+        n=n+1;
+    end
 end

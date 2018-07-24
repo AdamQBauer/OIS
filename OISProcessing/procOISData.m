@@ -1,4 +1,4 @@
-function [datahb, WL, op, E, info] = procOISData(filename, info, system,ledLoc)
+function [datahb, WL, op, E, info] = procOISData(filename, info, system)
 
 % (c) 2009 Washington University in St. Louis
 % All Rights Reserved
@@ -38,8 +38,8 @@ function [datahb, WL, op, E, info] = procOISData(filename, info, system,ledLoc)
 %% Get Optical Properties
 disp('Getting Optical Properties')
 info.system=system;
-[op, E, led, Hb]=getop_system(system,ledLoc);
-info.numled=numel(led);
+[op, E, numled, led, Hb]=getop_system(system);
+info.numled=numled;
 info.hb=size(Hb,2);
 
 %% Load in raw data collected from camera and process
@@ -63,25 +63,15 @@ rawdata=single(rawdata);
 info.nVx=nVx;
 info.nVy=nVy;
 
-if strcmp(system, 'fcOIS2_Fluor')
-    R=mod(L,info.numled+1);
-    if R~=0
-        rawdata=rawdata(:,:,1:(L-R));
-        disp(['** ',num2str(info.numled+1-R),' frames were dropped **'])
-    end
-    rawdata=reshape(rawdata,info.nVx,info.nVy,info.numled+1,[]);
-else
-    R=mod(L,info.numled);
-    if R~=0
-        rawdata=rawdata(:,:,1:(L-R));
-        disp(['** ',num2str(info.numled-R),' frames were dropped **'])
-    end
-    rawdata=reshape(rawdata,info.nVx,info.nVy,info.numled,[]);
+R=mod(L,info.numled);
+if R~=0
+    rawdata=rawdata(:,:,1:(L-R));
+    disp(['** ',num2str(info.numled-R),' frames were dropped **'])
 end
 
+rawdata=reshape(rawdata,info.nVx,info.nVy,info.numled,[]);
 rawdata=rawdata(:,:,:,2:end); % cut off bad first set of frames
 info.T1=size(rawdata,4);
-rawdata=squeeze(rawdata(:,:,2:4,:));
 
 testpixel=resampledata(double(squeeze(rawdata(1,1,:,:))),info.framerate,info.freqout,10^-5);
 info.T2=size(testpixel,2); clear testpixel  % calculate image series length (in time) after resampling
@@ -91,14 +81,10 @@ if strcmp(system, 'fcOIS1')
     WL(:,:,1)=frameone(:,:,1)/max(max(frameone(:,:,1))); % red
     WL(:,:,2)=frameone(:,:,3)/max(max(frameone(:,:,3))); % yellow
     WL(:,:,3)=frameone(:,:,4)/max(max(frameone(:,:,4))); % blue
-elseif strcmp(system, 'fcOIS2')||strcmp(system, 'EastOIS1')
+elseif strcmp(system, 'fcOIS2')
     WL(:,:,1)=frameone(:,:,4)/max(max(frameone(:,:,4))); % red
-    WL(:,:,2)=frameone(:,:,2)/max(max(frameone(:,:,2))); % yellow/green
-    WL(:,:,3)=frameone(:,:,1)/max(max(frameone(:,:,1))); % blue
-elseif strcmp(system, 'fcOIS2_Fluor')
-    WL(:,:,1)=frameone(:,:,3)/max(max(frameone(:,:,3))); % red
     WL(:,:,2)=frameone(:,:,2)/max(max(frameone(:,:,2))); % yellow
-    WL(:,:,3)=frameone(:,:,1)/max(max(frameone(:,:,1))); % green
+    WL(:,:,3)=frameone(:,:,1)/max(max(frameone(:,:,1))); % blue
 end
 
 disp('Processing Pixels')
@@ -132,18 +118,14 @@ fclose(fid);
 end
 
 %% getop() Get the optical pathlengths, extinction coefficients, and LED spectra
-function [op, E, led, Hb]=getop_system(system,ledLoc)
+function [op, E, numled, led, Hb]=getop_system(system)
 
 [lambda1, Hb]=getHb; % Get hemoglobin extinction coefficients
 
 if strcmp(system, 'fcOIS1')
-    [led, lambda2]=getfcOIS1LEDs(ledLoc); % Get LED spectra
+    [led, lambda2]=getfcOIS1LEDs; % Get LED spectra
 elseif strcmp(system, 'fcOIS2')
-    [led, lambda2]=getfcOIS2LEDs(ledLoc); % Get LED spectra
-elseif strcmp(system, 'EastOIS1')
-    [led, lambda2]=getEastOIS1LEDs(ledLoc); % Get LED spectra
-elseif strcmp(system, 'fcOIS2_Fluor')
-    [led, lambda2]=getfcOIS2_FluorLEDs(ledLoc); % Get LED spectra
+    [led, lambda2]=getfcOIS2LEDs; % Get LED spectra
 end
 
 op.HbT=76*10^-3; % uM concentration
@@ -158,13 +140,9 @@ op.nout=1; % External Index of Refraction
 op.c=3e10/op.nin; % Speed of Light in the Medium
 op.musp=10; % Reduced Scattering Coefficient
 
-validLed = false(1,numel(led));
-for n = 1:numel(led)
-    validLed(n) = ~isempty(led{n});
-end
-validLed = find(validLed);
+numled=size(led,2);
 
-for n=validLed
+for n=1:numled
     
     % Interpollate from Spectrometer Wavelengths to Reference Wavelengths
     led{n}.ledpower=interp1(lambda2,led{n}.spectrum,lambda1,'pchip');
@@ -207,7 +185,7 @@ Hb=c*squeeze(data(:,2:3));
 end
 
 %% getLED()
-function [led lambda]=getfcOIS1LEDs(ledLoc)
+function [led lambda]=getfcOIS1LEDs
 led{1}.name='OSCR5111A-WY'; % red
 led{2}.name='B5B-435-30S';  % orange
 led{3}.name='OSCY5111A-WY'; % yellow
@@ -216,7 +194,7 @@ led{4}.name='RLS-5B475-S';  % blue
 numled=size(led,2);
 
 for n=1:numled
-    fid=fopen(fullfile(ledLoc,[led{n}.name,'.Master.Sample']));
+    fid=fopen([led{n}.name,'.Master.Sample']);
     temp=textscan(fid,'%f %f','headerlines',19);
     fclose(fid);
     lambda=temp{1};
@@ -225,7 +203,7 @@ end
 
 end
 
-function [led, lambda]=getfcOIS2LEDs(ledLoc)
+function [led, lambda]=getfcOIS2LEDs
 led{1}.name='150917_TL_470nm_Pol';      %Blue
 led{2}.name='150917_Mtex_530nm_Pol';    %Green
 led{3}.name='150917_TL_590nm_Pol';      %Yellow
@@ -234,42 +212,7 @@ led{4}.name='150917_TL_628nm_Pol';      %Red
 numled=size(led,2);
 
 for n=1:numled
-    fid=fopen(fullfile(ledLoc,[led{n}.name, '.txt']));
-    temp=textscan(fid,'%f %f','headerlines',0);
-    fclose(fid);
-    lambda=temp{1};
-    led{n}.spectrum=temp{2};
-end
-
-end
-
-function [led, lambda]=getEastOIS1LEDs(ledLoc)
-led{1}.name='East3410OIS1_TL_470_Pol';      %Blue
-led{2}.name='East3410OIS1_TL_590_Pol';      %Yellow
-led{3}.name='East3410OIS1_TL_617_Pol';      %Orange
-led{4}.name='East3410OIS1_TL_625_Pol';      %Red
-
-numled=size(led,2);
-
-for n=1:numled
-    fid=fopen(fullfile(ledLoc,[led{n}.name, '.txt']));
-    temp=textscan(fid,'%f %f','headerlines',0);
-    fclose(fid);
-    lambda=temp{1};
-    led{n}.spectrum=temp{2};
-end
-
-end
-
-function [led, lambda]=getfcOIS2_FluorLEDs(ledLoc)
-led{1}.name='150917_Mtex_530nm_Pol';    %Green
-led{2}.name='150917_TL_590nm_Pol';      %Yellow
-led{3}.name='150917_TL_628nm_Pol';      %Red
-
-numled=size(led,2);
-
-for n=1:numled
-    fid=fopen(fullfile(ledLoc,[led{n}.name, '.txt']));
+    fid=fopen([led{n}.name, '.txt']);
     temp=textscan(fid,'%f %f','headerlines',0);
     fclose(fid);
     lambda=temp{1};
