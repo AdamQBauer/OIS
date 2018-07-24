@@ -40,8 +40,12 @@ function [Oxy_gsr, DeOxy_gsr, gs, beta]=gsr(datahb,isbrain)
 datahb=reshape(datahb,nVx*nVy,hb,T);
 gs=squeeze(mean(datahb(isbrain==1,:,:),1));
 [datahb2, Rgs, beta]=regcorr(datahb,gs);
-Oxy_gsr=squeeze(datahb2(:,1,:));
-DeOxy_gsr=squeeze(datahb2(:,2,:));
-Oxy_gsr = reshape(Oxy_gsr,nVx,nVy,T);
-DeOxy_gsr = reshape(DeOxy_gsr,nVx,nVy,T);
+if size(datahb2,2) > 1
+    Oxy_gsr=squeeze(datahb2(:,1,:));
+    DeOxy_gsr=squeeze(datahb2(:,2,:));
+else
+    Oxy_gsr = squeeze(datahb2(:,1,:));
+    DeOxy_gsr = [];
+end
+
 end
